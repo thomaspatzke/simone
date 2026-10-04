@@ -1,0 +1,45 @@
+# Sigma AI Configuration
+
+# Primary model (any pydantic-ai model string)
+# Examples:
+#   openai:gpt-4o
+#   openai:gpt-4o-mini
+#   anthropic:claude-3-5-sonnet-20241022
+#   anthropic:claude-3-haiku-20240307
+#   google-gla:gemini-1.5-pro
+#   google-gla:gemini-1.5-flash
+#   groq:llama-3.1-70b-versatile
+#   mistral:mistral-large-latest
+#   ollama:llama3          # local, no key required
+model: "openai:gpt-4o"
+
+# API keys for model providers
+# Leave blank ("") if you don't use that provider
+api_keys:
+  openai: ""
+  anthropic: ""
+  google: ""        # sets GEMINI_API_KEY
+  groq: ""
+  mistral: ""
+  fireworks: ""
+  together: ""
+  cohere: ""
+
+# Additional models to display in the web UI dropdown
+# Users can switch between them during a chat session
+extra_models:
+  - "openai:gpt-4o-mini"
+  # - "anthropic:claude-3-5-sonnet-20241022"
+
+# Local SigmaHQ rule repository cache
+sigma_repo:
+  # Directory where the Sigma rule repository is cached
+  # Use ~ for the home directory
+  path: "~/.sigma-ai/sigma-rules"
+  # Set to true to re-download the repo on every startup
+  auto_update: false
+
+# Web server settings
+server:
+  host: "127.0.0.1"
+  port: 7932
