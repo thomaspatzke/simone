@@ -6,7 +6,7 @@ import re
 
 import httpx
 
-_MAX_CHARS = 25_000
+_MAX_CHARS = 100_000
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
