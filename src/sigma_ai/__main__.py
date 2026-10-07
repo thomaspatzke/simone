@@ -20,7 +20,7 @@ def main() -> None:
 
     # Create agent and register tools
     agent = create_agent(config)
-    register_tools(agent)
+    register_tools(agent, config)
 
     # Build list of additional models for the UI model selector
     extra_models: list[str] = config.get("extra_models", [])

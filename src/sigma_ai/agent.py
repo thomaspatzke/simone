@@ -72,7 +72,13 @@ high-quality, validated Sigma detection rules through an interactive chat.
 - Re-validate after every change. Repeat until no HIGH issues remain.
 - If you change the rule significantly, re-validate even for LOW issues.
 
-### Step 8 – Present Final Rule
+### Step 8 – Save the Rule (Optional)
+- If the user wants to save the rule, call `save_rule` with the complete YAML.
+- The rule will be automatically saved to the configured output directory.
+- Filenames follow SigmaHQ conventions derived from the rule title.
+- If a file exists, an index is appended (e.g., rule_name-2.yml) to prevent overwriting.
+
+### Step 9 – Present Final Rule
 - Show the final validated rule in a ```yaml code block.
 - Briefly explain what it detects and why the detection logic was chosen.
 - Note known false positives and how to tune them.
@@ -167,8 +173,9 @@ def _build_capabilities(model_name: str) -> list:  # type: ignore[type-arg]
     return caps
 
 
-def register_tools(agent: Agent) -> None:  # type: ignore[type-arg]
+def register_tools(agent: Agent, config: dict[str, Any]) -> None:  # type: ignore[type-arg]
     """Register all tools on the agent instance."""
+    from sigma_ai.tools.sigma_output import save_rule as save_rule_to_file
 
     @agent.tool_plain
     async def fetch_url(url: str) -> str:
@@ -224,3 +231,26 @@ def register_tools(agent: Agent) -> None:  # type: ignore[type-arg]
         Always call this when creating a new rule to ensure a unique id field.
         """
         return str(uuid.uuid4())
+
+    @agent.tool_plain
+    def save_rule(rule_yaml: str) -> str:
+        """Save a validated Sigma rule to a file in the output directory.
+
+        The filename is automatically generated from the rule's title following
+        SigmaHQ naming conventions. If a file with that name exists, an index
+        is appended (e.g., rule_name-2.yml) to avoid overwriting existing files.
+
+        Args:
+            rule_yaml: The complete, validated YAML content of the Sigma rule.
+
+        Returns:
+            A confirmation message with the path where the rule was saved.
+        """
+        from sigma_ai.config import get_output_directory
+        from pathlib import Path
+
+        output_dir = get_output_directory(config)
+        try:
+            return save_rule_to_file(rule_yaml, output_dir)
+        except ValueError as e:
+            return f"[Error] Could not save rule: {e}"

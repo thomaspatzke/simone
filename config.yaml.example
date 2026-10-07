@@ -39,6 +39,14 @@ sigma_repo:
   # Set to true to re-download the repo on every startup
   auto_update: false
 
+# Generated rules output directory
+output:
+  # Directory where generated Sigma rules will be saved
+  # Use ~ for the home directory
+  # Files are named according to SigmaHQ conventions (lowercase, underscores)
+  # If a file exists, an index is appended (e.g., rule_name-2.yml) to avoid overwriting
+  directory: "~/.sigma-ai/generated-rules"
+
 # Web server settings
 server:
   host: "127.0.0.1"

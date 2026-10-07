@@ -27,6 +27,9 @@ _DEFAULT_CONFIG: dict[str, Any] = {
         "path": "~/.sigma-ai/sigma-rules",
         "auto_update": False,
     },
+    "output": {
+        "directory": "~/.sigma-ai/generated-rules",
+    },
     "server": {
         "host": "127.0.0.1",
         "port": 7932,
@@ -53,6 +56,11 @@ def load_config(path: str = "config.yaml") -> dict[str, Any]:
 
 def get_sigma_repo_path(config: dict[str, Any]) -> Path:
     raw = config.get("sigma_repo", {}).get("path", "~/.sigma-ai/sigma-rules")
+    return Path(raw).expanduser().resolve()
+
+
+def get_output_directory(config: dict[str, Any]) -> Path:
+    raw = config.get("output", {}).get("directory", "~/.sigma-ai/generated-rules")
     return Path(raw).expanduser().resolve()
 
 
