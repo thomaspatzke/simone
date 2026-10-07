@@ -36,3 +36,6 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Output directory for saved rules
+output/
