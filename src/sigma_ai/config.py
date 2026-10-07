@@ -60,7 +60,14 @@ def get_sigma_repo_path(config: dict[str, Any]) -> Path:
 
 
 def get_output_directory(config: dict[str, Any]) -> Path:
-    raw = config.get("output", {}).get("directory", "~/.sigma-ai/generated-rules")
+    if not isinstance(config, dict):
+        raise ValueError(f"Config must be a dict, got {type(config).__name__}")
+    
+    output_section = config.get("output", {})
+    if not isinstance(output_section, dict):
+        raise ValueError(f"output section must be a dict, got {type(output_section).__name__}")
+    
+    raw = output_section.get("directory", "~/.sigma-ai/generated-rules")
     return Path(raw).expanduser().resolve()
 
 

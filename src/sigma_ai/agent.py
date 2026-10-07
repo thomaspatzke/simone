@@ -176,6 +176,10 @@ def _build_capabilities(model_name: str) -> list:  # type: ignore[type-arg]
 def register_tools(agent: Agent, config: dict[str, Any]) -> None:  # type: ignore[type-arg]
     """Register all tools on the agent instance."""
     from sigma_ai.tools.sigma_output import save_rule as save_rule_to_file
+    from sigma_ai.config import get_output_directory
+
+    # Ensure config is properly captured in closure
+    _config = config
 
     @agent.tool_plain
     async def fetch_url(url: str) -> str:
@@ -246,11 +250,10 @@ def register_tools(agent: Agent, config: dict[str, Any]) -> None:  # type: ignor
         Returns:
             A confirmation message with the path where the rule was saved.
         """
-        from sigma_ai.config import get_output_directory
-        from pathlib import Path
-
-        output_dir = get_output_directory(config)
         try:
+            output_dir = get_output_directory(_config)
             return save_rule_to_file(rule_yaml, output_dir)
         except ValueError as e:
             return f"[Error] Could not save rule: {e}"
+        except Exception as e:  # noqa: BLE001
+            return f"[Error] Unexpected error saving rule: {e}"
