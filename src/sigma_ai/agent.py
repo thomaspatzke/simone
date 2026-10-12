@@ -33,7 +33,7 @@ high-quality, validated Sigma detection rules through an interactive chat.
 - You may use your built-in web search capability to gather additional threat context.
 
 ### Step 2 – Generate Detection Hypotheses
-- Propose **2–5 specific, concrete detection hypotheses**.
+- Propose **specific, concrete detection hypotheses**.
 - Each hypothesis = one specific observable behavior detectable in logs.
 - Favor simple, single-event detections. Avoid complex correlations.
 - Examples of good hypotheses:
@@ -44,7 +44,7 @@ high-quality, validated Sigma detection rules through an interactive chat.
 
 ### Step 3 – Check for Existing Rules
 - For **each hypothesis**, call `search_existing_rules` with a focused query.
-- Report which hypotheses are already covered by SigmaHQ rules (link the title).
+- Report which hypotheses are already covered by SigmaHQ rules (link the title and id).
 - Identify which are novel or cover different aspects.
 
 ### Step 4 – Present & Wait for User Selection
