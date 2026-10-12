@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic_ai import Agent
 
-from sigma_ai.knowledge.logsources import LOGSOURCE_SUMMARY, get_logsource_info
+from sigma_ai.knowledge.logsources import LOGSOURCE_SUMMARY, get_logsource_info as _get_logsource_info
 from sigma_ai.tools.fetch_source import extract_pdf_bytes, fetch_source
 from sigma_ai.tools.sigma_search import format_results, search_rules
 from sigma_ai.tools.sigma_validate import validate_rule
@@ -226,7 +226,7 @@ def register_tools(agent: Agent, config: dict[str, Any]) -> None:  # type: ignor
         Returns logsource definitions, available fields, common event IDs, and usage tips.
         Use this before drafting a rule to select the right logsource and fields.
         """
-        return get_logsource_info(activity_description)
+        return _get_logsource_info(activity_description)
 
     @agent.tool_plain
     def generate_rule_id() -> str:
