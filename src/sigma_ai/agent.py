@@ -5,6 +5,7 @@ import uuid
 from typing import Any
 
 from pydantic_ai import Agent
+from pydantic_ai.models import Model
 
 from sigma_ai.knowledge.logsources import LOGSOURCE_SUMMARY, get_logsource_info as _get_logsource_info
 from sigma_ai.knowledge.correlation_rules import get_correlation_rules_spec as _get_correlation_rules_spec
@@ -160,12 +161,39 @@ Then provide a brief explanation (2–3 sentences) of the detection logic.
 def create_agent(config: dict[str, Any]) -> Agent:  # type: ignore[type-arg]
     model_name: str = config.get("model", "openai:gpt-4o")
     capabilities = _build_capabilities(model_name)
+    model = _build_model(model_name)
 
     return Agent(
-        model_name,
+        model,
         instructions=_SYSTEM_PROMPT,
         capabilities=capabilities,
     )
+
+
+def _build_model(model_name: str) -> Model | str:  # type: ignore[type-arg]
+    """Build a model instance.
+
+    For Anthropic models, creates an AnthropicModel directly so we can
+    override the profile.  pydantic-ai 2.54 does not know that claude-haiku-5-5
+    binds thinking blocks to the conversation prefix; without the flag the
+    automatic drop-and-retry on stale-block 400 errors never fires.
+    """
+    if not model_name.startswith("anthropic:"):
+        return model_name
+    try:
+        from pydantic_ai.models.anthropic import AnthropicModel
+        from pydantic_ai.profiles.anthropic import AnthropicModelProfile
+
+        raw_name = model_name.removeprefix("anthropic:")
+        # Haiku 5.x binds thinking blocks like fable-5-1/opus-5-5/sonnet-5-5
+        # but isn't in pydantic-ai's known list yet.  Setting the flag here
+        # lets the built-in retry-with-drop_block mechanism handle the 400.
+        profile: AnthropicModelProfile | None = None
+        if raw_name.startswith("claude-haiku-5"):
+            profile = AnthropicModelProfile(anthropic_binds_thinking_blocks=True)
+        return AnthropicModel(raw_name, profile=profile)
+    except ImportError:
+        return model_name
 
 
 def _build_capabilities(model_name: str) -> list:  # type: ignore[type-arg]
