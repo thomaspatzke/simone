@@ -7,6 +7,7 @@ from typing import Any
 from pydantic_ai import Agent
 
 from sigma_ai.knowledge.logsources import LOGSOURCE_SUMMARY, get_logsource_info as _get_logsource_info
+from sigma_ai.knowledge.correlation_rules import get_correlation_rules_spec as _get_correlation_rules_spec
 from sigma_ai.tools.fetch_source import extract_pdf_bytes, fetch_source
 from sigma_ai.tools.sigma_search import format_results, search_rules
 from sigma_ai.tools.sigma_validate import validate_rule
@@ -135,6 +136,10 @@ level: medium             # informational | low | medium | high | critical
 8. **Level calibration**: `high` only when clearly malicious and false positives are rare.
 9. **MITRE tags**: Always add at least one `attack.<tactic>` and `attack.t<technique>` tag.
 10. **UUID required**: Every rule must have a UUID v4 `id` field.
+11. **Correlation rules**: If the detection requires counting events, distinct values, or
+    temporal ordering across multiple events, consider a correlation rule. Call
+    `get_correlation_rule_knowledge` **before** drafting any correlation rule to get the
+    exact syntax — do not guess. Avoid correlation rules when a single-event rule suffices.
 
 {LOGSOURCE_SUMMARY}
 
@@ -227,6 +232,16 @@ def register_tools(agent: Agent, config: dict[str, Any]) -> None:  # type: ignor
         Use this before drafting a rule to select the right logsource and fields.
         """
         return _get_logsource_info(activity_description)
+
+    @agent.tool_plain
+    def get_correlation_rule_knowledge() -> str:
+        """Return the full Sigma correlation rules specification.
+
+        Call this before drafting any correlation rule (event_count, value_count,
+        temporal, temporal_ordered, value_sum, value_avg, value_percentile).
+        It contains syntax, field names, examples, and common mistakes to avoid.
+        """
+        return _get_correlation_rules_spec()
 
     @agent.tool_plain
     def generate_rule_id() -> str:

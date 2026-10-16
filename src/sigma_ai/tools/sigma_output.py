@@ -26,7 +26,9 @@ def extract_sigma_filename(rule_yaml: str) -> str:
         ValueError: If the rule has no title or cannot be parsed.
     """
     try:
-        rule = yaml.safe_load(rule_yaml)
+        # safe_load_all handles both single-document and multi-document (correlation) YAML;
+        # the title lives in the first document.
+        rule = next(yaml.safe_load_all(rule_yaml), None)
     except yaml.YAMLError as e:
         raise ValueError(f"Invalid YAML: {e}") from e
 
