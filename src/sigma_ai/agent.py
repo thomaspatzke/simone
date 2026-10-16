@@ -70,6 +70,8 @@ high-quality, validated Sigma detection rules through an interactive chat.
 
 ### Step 7 – Validate & Iterate
 - Call `validate_sigma_rule` with the complete YAML.
+- **IMPORTANT**: `validate_sigma_rule` only validates a **single rule**. Do not attempt to pass
+  multiple rules or rulesets in one call.
 - Fix **all HIGH severity issues** immediately.
 - Fix MEDIUM issues where possible.
 - Re-validate after every change. Repeat until no HIGH issues remain.
@@ -181,6 +183,8 @@ level: medium             # informational | low | medium | high | critical
     **IMPORTANT**: `temporal_ordered` requires explicit user request and has significant drawbacks
     (false negatives due to log ordering issues). Prefer `temporal` (unordered) by default.
     Always warn the user about the limitations of strict event ordering before suggesting it.
+    **Validation note**: Validate base event rules and correlation rules separately — validation
+    cannot handle multiple rules in one call.
 
 {LOGSOURCE_SUMMARY}
 
