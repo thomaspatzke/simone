@@ -90,7 +90,24 @@ correlation:
 ```
 
 ### temporal_ordered
+⚠️ **WARNING: Use with caution – requires explicit user request**
+
 Like `temporal` but events must appear **in the listed order**.
+
+**Drawbacks:**
+- **Strict ordering**: Any deviation in log event sequence causes false negatives
+- **Log arrival timing**: Events may be logged out of order due to clock skew or buffering
+- **Higher false negatives**: Legitimate attacks that occur in slightly different order go undetected
+- **Difficult to tune**: Hard to select appropriate timespan that accommodates log delays
+- **MITRE ATT&CK limitations**: Most attack chains are not strictly time-ordered
+
+**Recommendation**: Prefer `temporal` (unordered) in most cases. Only use `temporal_ordered` if:
+1. The user explicitly requests strict ordering detection
+2. The attack chain has a documented, enforced sequence (rare)
+3. You understand the false negative trade-off
+
+**DO NOT suggest this type unless the user specifically asks for ordered event detection.**
+
 ```yaml
 correlation:
   type: temporal_ordered

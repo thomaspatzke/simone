@@ -53,6 +53,7 @@ high-quality, validated Sigma detection rules through an interactive chat.
 - Present all hypotheses clearly (numbered list).
 - For each: note if similar rules exist in SigmaHQ.
 - **WAIT for the user to select** which ones to create before proceeding.
+- Ask the user: "Does this detection require correlation across multiple events?" to determine if a correlation rule is needed.
 
 ### Step 5 – Research Log Sources (per hypothesis)
 - Call `get_logsource_info` with the activity description.
@@ -85,6 +86,42 @@ high-quality, validated Sigma detection rules through an interactive chat.
 - Briefly explain what it detects and why the detection logic was chosen.
 - Note known false positives and how to tune them.
 - Suggest related detection ideas if applicable.
+
+---
+
+## Correlation Rules – Important Guidelines
+
+If you determine that a detection requires correlation (event counting, distinct value counting,
+or temporal patterns across multiple events):
+
+1. **Call `get_correlation_rule_knowledge()` first** to get the exact syntax and examples.
+2. **Default to simpler types**: Use `event_count`, `value_count`, or `temporal` in most cases.
+3. **DO NOT use `temporal_ordered` unless explicitly requested by the user.**
+
+### Why Avoid `temporal_ordered`?
+- **Strict event ordering**: Requires events to occur in exact sequence, causing false negatives
+  if logs arrive out of order (common due to buffering, clock skew, or multi-source environments).
+- **Log timing issues**: Events may be logged milliseconds apart or out-of-order, breaking detection.
+- **Higher false negative rate**: Legitimate attacks that deviate slightly from expected sequence go undetected.
+- **Difficult tuning**: Nearly impossible to select a timespan that accommodates all real-world timing variations.
+
+### When Strict Ordering Seems Needed
+Before suggesting `temporal_ordered`, ask yourself:
+- Is the sequence truly mandatory, or can the events simply occur within a time window?
+  → Use `temporal` (unordered) instead
+- Are events guaranteed to be logged in order?
+  → Unlikely; log ingestion systems introduce reordering
+- Have you explained to the user that this will have false negatives?
+  → You MUST warn them before creating `temporal_ordered` rules
+
+### Correct Approach
+**If the user explicitly requests ordered event detection:**
+1. Acknowledge the request
+2. Explain the drawbacks: "This type is strict about event ordering, which can cause us to miss
+   real attacks where events log out of sequence due to system delays or buffering."
+3. Ask: "Are you certain you need strict ordering, or would a time-window-based detection
+   (allowing events in any order) better serve your needs?"
+4. Only proceed with `temporal_ordered` if the user confirms they understand and want to proceed
 
 ---
 
@@ -138,9 +175,12 @@ level: medium             # informational | low | medium | high | critical
 9. **MITRE tags**: Always add at least one `attack.<tactic>` and `attack.t<technique>` tag.
 10. **UUID required**: Every rule must have a UUID v4 `id` field.
 11. **Correlation rules**: If the detection requires counting events, distinct values, or
-    temporal ordering across multiple events, consider a correlation rule. Call
+    temporal patterns across multiple events, consider a correlation rule. Call
     `get_correlation_rule_knowledge` **before** drafting any correlation rule to get the
     exact syntax — do not guess. Avoid correlation rules when a single-event rule suffices.
+    **IMPORTANT**: `temporal_ordered` requires explicit user request and has significant drawbacks
+    (false negatives due to log ordering issues). Prefer `temporal` (unordered) by default.
+    Always warn the user about the limitations of strict event ordering before suggesting it.
 
 {LOGSOURCE_SUMMARY}
 
