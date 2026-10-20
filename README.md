@@ -20,3 +20,7 @@ This project leverages AI agents to help security teams create, refine, and vali
 - `tests/` - Test suite
 - `output/` - Generated Sigma detection rules
 - `config.yaml` - Configuration file for the application
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
