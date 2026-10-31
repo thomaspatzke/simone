@@ -5,10 +5,10 @@ import sys
 
 
 def main() -> None:
-    from sigma_ai.config import load_config, get_sigma_repo_path
-    from sigma_ai.tools.sigma_repo import ensure_repo
-    from sigma_ai.tools.sigma_search import initialize as init_search
-    from sigma_ai.agent import create_agent, register_tools
+    from simone.config import load_config, get_sigma_repo_path
+    from simone.tools.sigma_repo import ensure_repo
+    from simone.tools.sigma_search import initialize as init_search
+    from simone.agent import create_agent, register_tools
 
     config = load_config()
 

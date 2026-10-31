@@ -16,7 +16,7 @@ This project leverages AI agents to help security teams create, refine, and vali
 
 ## Project Structure
 
-- `src/sigma_ai/` - Core AI agent implementation
+- `src/simone/` - Core AI agent implementation
 - `tests/` - Test suite
 - `output/` - Generated Sigma detection rules
 - `config.yaml` - Configuration file for the application

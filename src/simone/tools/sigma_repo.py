@@ -12,7 +12,7 @@ _MARKER_FILE = ".downloaded"
 
 def ensure_repo(config: dict[str, Any]) -> Path:
     """Ensure the local Sigma rule cache exists; download if missing."""
-    from sigma_ai.config import get_sigma_repo_path  # avoid circular at module level
+    from simone.config import get_sigma_repo_path  # avoid circular at module level
 
     repo_path = get_sigma_repo_path(config)
     auto_update = config.get("sigma_repo", {}).get("auto_update", False)

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from sigma_ai.tools.sigma_output import (
+from simone.tools.sigma_output import (
     extract_sigma_filename,
     find_next_available_path,
     save_rule,

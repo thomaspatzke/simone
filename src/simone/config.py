@@ -24,11 +24,11 @@ _DEFAULT_CONFIG: dict[str, Any] = {
     "api_keys": {},
     "extra_models": [],
     "sigma_repo": {
-        "path": "~/.sigma-ai/sigma-rules",
+        "path": "~/.simone/sigma-rules",
         "auto_update": False,
     },
     "output": {
-        "directory": "~/.sigma-ai/generated-rules",
+        "directory": "~/.simone/generated-rules",
     },
     "server": {
         "host": "127.0.0.1",
@@ -55,7 +55,7 @@ def load_config(path: str = "config.yaml") -> dict[str, Any]:
 
 
 def get_sigma_repo_path(config: dict[str, Any]) -> Path:
-    raw = config.get("sigma_repo", {}).get("path", "~/.sigma-ai/sigma-rules")
+    raw = config.get("sigma_repo", {}).get("path", "~/.simone/sigma-rules")
     return Path(raw).expanduser().resolve()
 
 
@@ -67,7 +67,7 @@ def get_output_directory(config: dict[str, Any]) -> Path:
     if not isinstance(output_section, dict):
         raise ValueError(f"output section must be a dict, got {type(output_section).__name__}")
     
-    raw = output_section.get("directory", "~/.sigma-ai/generated-rules")
+    raw = output_section.get("directory", "~/.simone/generated-rules")
     return Path(raw).expanduser().resolve()
 
 

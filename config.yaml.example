@@ -39,7 +39,7 @@ extra_models:
 sigma_repo:
   # Directory where the Sigma rule repository is cached
   # Use ~ for the home directory
-  path: "~/.sigma-ai/sigma-rules"
+  path: "~/.simone/sigma-rules"
   # Set to true to re-download the repo on every startup
   auto_update: false
 
@@ -49,7 +49,7 @@ output:
   # Use ~ for the home directory
   # Files are named according to SigmaHQ conventions (lowercase, underscores)
   # If a file exists, an index is appended (e.g., rule_name-2.yml) to avoid overwriting
-  directory: "~/.sigma-ai/generated-rules"
+  directory: "~/.simone/generated-rules"
 
 # Web server settings
 server:

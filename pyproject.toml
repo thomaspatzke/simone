@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sigma-ai"
+name = "simone"
 version = "0.1.0"
 description = "AI-powered Sigma detection rule generator"
 requires-python = ">=3.11"
@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-sigma-ai = "sigma_ai.__main__:main"
+simone = "simone.__main__:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sigma_ai"]
+packages = ["src/simone"]
