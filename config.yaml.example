@@ -11,7 +11,7 @@
 #   groq:llama-3.1-70b-versatile
 #   mistral:mistral-large-latest
 #   ollama:llama3          # local, no key required
-model: "openai:gpt-4o"
+model: "anthropic:claude-haiku-5-5"
 
 # API keys for model providers
 # Leave blank ("") if you don't use that provider
@@ -28,8 +28,12 @@ api_keys:
 # Additional models to display in the web UI dropdown
 # Users can switch between them during a chat session
 extra_models:
-  - "openai:gpt-4o-mini"
-  # - "anthropic:claude-3-5-sonnet-20241022"
+  - "anthropic:claude-haiku-4-5"
+  - "anthropic:claude-sonnet-5-5"
+  - "anthropic:claude-opus-5-5"
+  - "openai:gpt-6-luna"
+  - "openai:gpt-6.1-terra"
+  - "openai:gpt-6.1-sol"
 
 # Local SigmaHQ rule repository cache
 sigma_repo:

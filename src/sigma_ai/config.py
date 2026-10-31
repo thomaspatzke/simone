@@ -20,7 +20,7 @@ _PROVIDER_ENV_VARS: dict[str, str] = {
 }
 
 _DEFAULT_CONFIG: dict[str, Any] = {
-    "model": "openai:gpt-4o",
+    "model": "anthropic:claude-haiku-5-5",
     "api_keys": {},
     "extra_models": [],
     "sigma_repo": {
