@@ -35,13 +35,21 @@ extra_models:
   - "openai:gpt-6.1-terra"
   - "openai:gpt-6.1-sol"
 
-# Local SigmaHQ rule repository cache
-sigma_repo:
-  # Directory where the Sigma rule repository is cached
-  # Use ~ for the home directory
-  path: "~/.simone/sigma-rules"
-  # Set to true to re-download the repo on every startup
-  auto_update: false
+# Sigma MCP server
+# simone gets all Sigma functionality (validation, SigmaHQ rule search,
+# logsource knowledge, file names) from sigma-mcp-server, which it starts as a
+# subprocess. The server downloads and caches the SigmaHQ rules itself.
+sigma_mcp:
+  # Command that starts the server. Leave empty to use the sigma-mcp-server
+  # installed together with simone.
+  command: ""
+  args: []
+  # Extra environment variables for the server, for example:
+  #   SIGMA_MCP_DATA_DIR: "~/.simone/sigma-mcp"   # where rules are cached
+  #   SIGMA_MCP_INDEX_MAX_AGE_DAYS: "7"           # refresh interval, 0 = never
+  # Proxy and CA settings (HTTPS_PROXY, SSL_CERT_FILE, ...) and SIGMA_MCP_*
+  # variables from simone's environment are passed on automatically.
+  env: {}
 
 # Generated rules output directory
 output:

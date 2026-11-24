@@ -23,9 +23,11 @@ _DEFAULT_CONFIG: dict[str, Any] = {
     "model": "anthropic:claude-haiku-5-5",
     "api_keys": {},
     "extra_models": [],
-    "sigma_repo": {
-        "path": "~/.simone/sigma-rules",
-        "auto_update": False,
+    "sigma_mcp": {
+        # Empty: the sigma-mcp-server installed together with simone.
+        "command": "",
+        "args": [],
+        "env": {},
     },
     "output": {
         "directory": "~/.simone/generated-rules",
@@ -50,13 +52,14 @@ def load_config(path: str = "config.yaml") -> dict[str, Any]:
             loaded = yaml.safe_load(f) or {}
         config = _deep_merge(_DEFAULT_CONFIG, loaded)
 
+    if "sigma_repo" in config:
+        print(
+            "[config] The 'sigma_repo' section is no longer used: the Sigma MCP "
+            "server manages the SigmaHQ rules. Set SIGMA_MCP_DATA_DIR in "
+            "'sigma_mcp.env' to choose where they are stored."
+        )
     _apply_api_keys(config.get("api_keys", {}))
     return config
-
-
-def get_sigma_repo_path(config: dict[str, Any]) -> Path:
-    raw = config.get("sigma_repo", {}).get("path", "~/.simone/sigma-rules")
-    return Path(raw).expanduser().resolve()
 
 
 def get_output_directory(config: dict[str, Any]) -> Path:

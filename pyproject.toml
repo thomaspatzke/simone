@@ -4,12 +4,16 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simone"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI-powered Sigma detection rule generator"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
-    "pydantic-ai>=2.0",
-    "pysigma>=2.0",
+    "pydantic-ai>=2.54",
+    "pydantic-ai-slim[mcp]>=2.54",
+    "sigma-mcp-server>=0.2",
     "httpx>=0.28",
     "pypdf>=5.0",
     "beautifulsoup4>=4.12",
@@ -21,5 +25,13 @@ dependencies = [
 [project.scripts]
 simone = "simone.__main__:main"
 
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/simone"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
