@@ -1,197 +1,82 @@
-"""Tests for sigma_output module."""
+"""Tests for saving rules without overwriting."""
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
 
-from simone.tools.sigma_output import (
-    extract_sigma_filename,
-    find_next_available_path,
-    save_rule,
-)
+from simone.tools.sigma_output import check_filename, find_next_available_path, save_rule
 
-
-class TestExtractSigmaFilename:
-    """Test sigma filename extraction from rule YAML."""
-
-    def test_simple_title(self) -> None:
-        """Test extraction with a simple title."""
-        rule_yaml = """
+RULE = """
 title: Process Creation Detection
 id: 12345678-1234-1234-1234-123456789012
-status: experimental
 logsource:
     category: process_creation
     product: windows
 detection:
     selection:
-        Image|endswith: '\\\\cmd.exe'
+        Image|endswith: '\\cmd.exe'
     condition: selection
 """
-        assert extract_sigma_filename(rule_yaml) == "process_creation_detection.yml"
 
-    def test_title_with_special_characters(self) -> None:
-        """Test extraction with special characters in title."""
-        rule_yaml = """
-title: Windows: Registry Event (HKCU\\Software\\Classes)
-id: 12345678-1234-1234-1234-123456789012
-status: experimental
-"""
-        filename = extract_sigma_filename(rule_yaml)
-        assert filename == "windows_registry_event_hkcusofdwareclass.yml"
 
-    def test_title_with_spaces(self) -> None:
-        """Test extraction with multiple spaces."""
-        rule_yaml = """
-title: Multiple   Spaces   Here
-id: 12345678-1234-1234-1234-123456789012
-"""
-        assert extract_sigma_filename(rule_yaml) == "multiple_spaces_here.yml"
+class TestCheckFilename:
+    def test_valid(self) -> None:
+        assert check_filename("proc_creation_win_test_rule.yml") == "proc_creation_win_test_rule.yml"
 
-    def test_missing_title_raises_error(self) -> None:
-        """Test that missing title raises ValueError."""
-        rule_yaml = """
-id: 12345678-1234-1234-1234-123456789012
-status: experimental
-"""
-        with pytest.raises(ValueError, match="must contain a 'title' field"):
-            extract_sigma_filename(rule_yaml)
-
-    def test_empty_title_raises_error(self) -> None:
-        """Test that empty title raises ValueError."""
-        rule_yaml = """
-title: ""
-id: 12345678-1234-1234-1234-123456789012
-"""
-        with pytest.raises(ValueError, match="title cannot be empty"):
-            extract_sigma_filename(rule_yaml)
-
-    def test_invalid_yaml_raises_error(self) -> None:
-        """Test that invalid YAML raises ValueError."""
-        rule_yaml = "{ invalid yaml ]"
-        with pytest.raises(ValueError, match="Invalid YAML"):
-            extract_sigma_filename(rule_yaml)
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "../escape.yml",
+            "sub/dir.yml",
+            "/abs/path.yml",
+            "Upper_Case.yml",
+            "with-hyphen.yml",
+            "rule.yaml",
+            "rule",
+            "",
+        ],
+    )
+    def test_invalid(self, name: str) -> None:
+        with pytest.raises(ValueError, match="Invalid file name"):
+            check_filename(name)
 
 
 class TestFindNextAvailablePath:
-    """Test finding next available file path with indexing."""
+    def test_free_name(self, tmp_path: Path) -> None:
+        assert find_next_available_path(tmp_path, "rule_name.yml") == tmp_path / "rule_name.yml"
 
-    def test_file_does_not_exist(self) -> None:
-        """Test when file doesn't exist, return as-is."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
-            result = find_next_available_path(output_dir, "new_rule.yml")
-            assert result == output_dir / "new_rule.yml"
-            assert not result.exists()
+    def test_appends_underscore_index(self, tmp_path: Path) -> None:
+        (tmp_path / "rule_name.yml").write_text("x")
+        (tmp_path / "rule_name_2.yml").write_text("x")
+        assert find_next_available_path(tmp_path, "rule_name.yml") == tmp_path / "rule_name_3.yml"
 
-    def test_file_exists_single_index(self) -> None:
-        """Test when file exists, append index -2."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
-            existing_file = output_dir / "rule.yml"
-            existing_file.write_text("# existing rule")
-
-            result = find_next_available_path(output_dir, "rule.yml")
-            assert result == output_dir / "rule-2.yml"
-            assert not result.exists()
-
-    def test_file_exists_multiple_indices(self) -> None:
-        """Test when multiple indexed versions exist."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
-
-            # Create rule.yml, rule-2.yml, rule-3.yml
-            (output_dir / "rule.yml").write_text("# v1")
-            (output_dir / "rule-2.yml").write_text("# v2")
-            (output_dir / "rule-3.yml").write_text("# v3")
-
-            result = find_next_available_path(output_dir, "rule.yml")
-            assert result == output_dir / "rule-4.yml"
-            assert not result.exists()
-
-    def test_creates_directory_if_needed(self) -> None:
-        """Test that directory is created if it doesn't exist."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir) / "nonexistent" / "nested" / "dir"
-            assert not output_dir.exists()
-
-            result = find_next_available_path(output_dir, "rule.yml")
-            assert output_dir.exists()
-            assert result == output_dir / "rule.yml"
+    def test_creates_directory(self, tmp_path: Path) -> None:
+        target = tmp_path / "a" / "b"
+        assert find_next_available_path(target, "rule_name.yml").parent == target
+        assert target.is_dir()
 
 
 class TestSaveRule:
-    """Test saving rules to files."""
+    def test_saves(self, tmp_path: Path) -> None:
+        message = save_rule(RULE, "proc_creation_win_test.yml", tmp_path)
+        saved = tmp_path / "proc_creation_win_test.yml"
+        assert saved.read_text(encoding="utf-8") == RULE
+        assert saved.as_posix() in message
 
-    def test_save_rule_creates_file(self) -> None:
-        """Test that save_rule creates a file with correct content."""
-        rule_yaml = """
-title: Test Detection Rule
-id: 12345678-1234-1234-1234-123456789012
-status: experimental
-description: Test rule
-logsource:
-    category: process_creation
-    product: windows
-detection:
-    selection:
-        Image|endswith: '\\\\cmd.exe'
-    condition: selection
-"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
-            result = save_rule(rule_yaml, output_dir)
+    def test_never_overwrites(self, tmp_path: Path) -> None:
+        save_rule(RULE, "proc_creation_win_test.yml", tmp_path)
+        save_rule(RULE.replace("Process", "Other"), "proc_creation_win_test.yml", tmp_path)
+        assert "Process Creation" in (tmp_path / "proc_creation_win_test.yml").read_text()
+        assert "Other Creation" in (tmp_path / "proc_creation_win_test_2.yml").read_text()
 
-            assert result.startswith("✅ Rule saved to:")
-            assert "test_detection_rule.yml" in result
+    def test_invalid_filename_writes_nothing(self, tmp_path: Path) -> None:
+        with pytest.raises(ValueError):
+            save_rule(RULE, "../outside.yml", tmp_path)
+        assert not (tmp_path.parent / "outside.yml").exists()
 
-            saved_file = output_dir / "test_detection_rule.yml"
-            assert saved_file.exists()
-            assert saved_file.read_text() == rule_yaml
-
-    def test_save_rule_appends_index_on_duplicate(self) -> None:
-        """Test that duplicate rules get indexed."""
-        rule_yaml = """
-title: Duplicate Test
-id: 12345678-1234-1234-1234-123456789012
-"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
-
-            # Save first copy
-            result1 = save_rule(rule_yaml, output_dir)
-            assert "duplicate_test.yml" in result1
-
-            # Save second copy with same content
-            result2 = save_rule(rule_yaml, output_dir)
-            assert "duplicate_test-2.yml" in result2
-
-            # Save third copy
-            result3 = save_rule(rule_yaml, output_dir)
-            assert "duplicate_test-3.yml" in result3
-
-            # Verify all files exist and have correct content
-            assert (output_dir / "duplicate_test.yml").exists()
-            assert (output_dir / "duplicate_test-2.yml").exists()
-            assert (output_dir / "duplicate_test-3.yml").exists()
-
-    def test_save_rule_invalid_yaml(self) -> None:
-        """Test that invalid YAML raises error."""
-        invalid_yaml = "{ invalid yaml ["
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
-            with pytest.raises(ValueError):
-                save_rule(invalid_yaml, output_dir)
-
-    def test_save_rule_missing_title(self) -> None:
-        """Test that rule without title raises error."""
-        rule_yaml = """
-id: 12345678-1234-1234-1234-123456789012
-status: experimental
-"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
-            with pytest.raises(ValueError):
-                save_rule(rule_yaml, output_dir)
+    @pytest.mark.parametrize(("text", "message"), [("a: [b", "Invalid YAML"), ("", "empty"), ("---\n", "empty")])
+    def test_invalid_yaml(self, tmp_path: Path, text: str, message: str) -> None:
+        with pytest.raises(ValueError, match=message):
+            save_rule(text, "proc_creation_win_test.yml", tmp_path)
+        assert list(tmp_path.iterdir()) == []

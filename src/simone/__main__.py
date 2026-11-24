@@ -1,4 +1,4 @@
-"""Entry point: load config, ensure Sigma repo, start the web UI."""
+"""Entry point: load config, connect to the Sigma MCP server, start the web UI."""
 from __future__ import annotations
 
 import sys
@@ -68,22 +68,28 @@ class _BrandingMiddleware:
 
 
 def main() -> None:
-    from simone.config import load_config, get_sigma_repo_path
-    from simone.tools.sigma_repo import ensure_repo
-    from simone.tools.sigma_search import initialize as init_search
-    from simone.agent import create_agent, register_tools
+    import asyncio
+
+    from simone.agent import create_agent
+    from simone.config import load_config
+    from simone.sigma_mcp import load_workflow
 
     config = load_config()
 
-    # Download Sigma rule repo if not already present
-    repo_path = ensure_repo(config)
+    # The rule-creation workflow comes from the Sigma MCP server.  This also
+    # checks that the server can be started before the web UI comes up.
+    try:
+        workflow = asyncio.run(load_workflow(config))
+    except Exception as exc:  # noqa: BLE001 - shown to the user
+        print(
+            f"[error] Could not start the Sigma MCP server: {exc}\n"
+            "Check the 'sigma_mcp' section of config.yaml, or run 'uv sync' to "
+            "install sigma-mcp-server.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-    # Build the in-memory search index
-    init_search(repo_path)
-
-    # Create agent and register tools
-    agent = create_agent(config)
-    register_tools(agent, config)
+    agent = create_agent(config, workflow)
 
     # Build list of additional models for the UI model selector
     extra_models: list[str] = config.get("extra_models", [])
@@ -103,6 +109,10 @@ def main() -> None:
         sys.exit(1)
 
     print(f"\n✅  simone is running → http://{host}:{port}\n")
+    print(
+        "The Sigma MCP server downloads the SigmaHQ rules in the background on "
+        "first use; rule search works once that has finished."
+    )
     uvicorn.run(app, host=host, port=port)
 
 
